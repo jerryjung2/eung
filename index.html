@@ -52,7 +52,6 @@
     <footer>© <span id="year"></span> Hanbok Heritage Quiz · 개인정보 수집 없음</footer>
   </div>
 
-  <!-- Fallback copy modal (no Clipboard API needed) -->
   <div class="modal" id="copyModal" role="dialog" aria-modal="true" aria-labelledby="copyTitle">
     <div class="sheet">
       <h3 id="copyTitle" style="margin:0 0 8px 0">링크를 길게 눌러 복사하세요</h3>
@@ -133,9 +132,12 @@
       if(key && RESULTS[key]) return key;
       return null;
     }
+
+    // ✅ UPDATED CODE BLOCK 1
     function setResultInURL(key){
       history.replaceState({}, "", `#result=${key}`);
     }
+    // ✅ UPDATED CODE BLOCK 2
     function clearResultInURL(){
       history.replaceState({}, "", location.pathname);
     }
@@ -249,7 +251,8 @@
       }
       render();
     }
-// 수정된 코드
+
+    // ✅ UPDATED CODE BLOCK 3
     function shareUrl(){
       const base = location.href.split('#')[0];
       const key = getResultFromURL();
@@ -260,17 +263,16 @@
     function share(){
       const title = '나는 어떤 한복 스타일일까? — Hanbok Heritage Quiz';
       const key = getResultFromURL();
-      const text = key ? \`내 타입은 "\${RESULTS[key].title}" (\${RESULTS[key].emoji})
-#HanbokHeritage #KHeritage #한복\` : '한복 심리테스트로 내 취향을 찾아보세요!';
+      const text = key ? `내 타입은 "${RESULTS[key].title}" (${RESULTS[key].emoji})\n#HanbokHeritage #KHeritage #한복` : '한복 심리테스트로 내 취향을 찾아보세요!';
       const url = shareUrl();
       // 1) Web Share API
       if (navigator.share){ navigator.share({title, text, url}).catch(()=>{}); return; }
       // 2) Clipboard API (may be blocked) — try/catch
-      try{ if(navigator.clipboard){ navigator.clipboard.writeText(\`\${title}\n\${text}\n\${url}\`); console.log('[share] link copied:', url); return; } }catch(_){ /* ignore */ }
+      try{ if(navigator.clipboard){ navigator.clipboard.writeText(`${title}\n${text}\n${url}`); console.log('[share] link copied:', url); return; } }catch(_){ /* ignore */ }
       // 3) execCommand fallback
-      if(execCopy(\`\${title}\n\${text}\n\${url}\`)){ console.log('[share] copied via execCommand'); return; }
+      if(execCopy(`${title}\n${text}\n${url}`)){ console.log('[share] copied via execCommand'); return; }
       // 4) Modal with selectable text
-      openCopyModal(\`\${title}\n\${text}\n\${url}\`);
+      openCopyModal(`${title}\n${text}\n${url}`);
     }
 
     function copyLinkSafe(url){
@@ -329,7 +331,7 @@
 
     // ---- Runtime tests (console) ----
     function runUnitTests(){
-      const log = (name, pass)=> console[pass?'log':'error'](\`✅[test] \${name}: \${pass?'pass':'FAIL'}\`);
+      const log = (name, pass)=> console[pass?'log':'error'](`✅[test] ${name}: ${pass?'pass':'FAIL'}`);
       // 1) majority
       log('majority classic', calcResult(['classic','classic','daily','fusion','classic'])==='classic');
       log('majority daily',   calcResult(['daily','daily','classic','fusion','ceremony'])==='daily');
