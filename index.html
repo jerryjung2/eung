@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hanbok Heritage Quiz — 한복 심리테스트</title>
+  <meta name="description" content="1분 심리테스트로 나의 한복 스타일을 찾아보자! #HanbokHeritage" />
+  <meta property="og:title" content="Hanbok Heritage Quiz — 한복 심리테스트" />
+  <meta property="og:description" content="1분 심리테스트로 나의 한복 스타일을 찾아보자! #HanbokHeritage" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <style>
+    :root{ --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --accent:#0ea5e9; }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Apple SD Gothic Neo,sans-serif; background:linear-gradient(#fff,var(--bg)); color:var(--text)}
+    .container{max-width:880px; margin:0 auto; padding:24px}
+    header{display:flex; align-items:center; justify-content:space-between; gap:12px}
+    .brand{display:flex; align-items:center; gap:8px}
+    .badge{font-size:12px; color:var(--muted)}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:20px; box-shadow:0 6px 20px rgba(15,23,42,.05); padding:20px}
+    .title{font-size:22px; font-weight:700; margin:8px 0 0}
+    .intro{color:var(--muted); line-height:1.7}
+    .btn{appearance:none; border:none; border-radius:16px; padding:12px 16px; background:var(--accent); color:#fff; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:8px}
+    .btn.secondary{background:#e2e8f0; color:#0f172a}
+    .btn:active{transform:translateY(1px)}
+    .row{display:flex; flex-wrap:wrap; gap:10px}
+    .choice{padding:16px; border:1px solid var(--border); border-radius:16px; background:#fff; cursor:pointer; text-align:left; flex:1 1 320px}
+    .choice:hover{box-shadow:0 6px 14px rgba(15,23,42,.06)}
+    .progress{height:10px; background:#e2e8f0; border-radius:999px; overflow:hidden; margin:8px 0}
+    .bar{height:100%; background:var(--accent); width:0; transition:width .3s}
+    .muted{color:var(--muted); font-size:14px}
+    footer{margin:18px 0; text-align:center; color:var(--muted); font-size:12px}
+    .list{margin:6px 0 0 18px; color:#334155}
+    .result{border:1px solid var(--border); border-radius:20px; background:#fff; padding:18px}
+    .result h3{margin:0; font-size:20px}
+    .space{height:8px}
+    .modal{position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center; padding:20px}
+    .modal.open{display:flex}
+    .modal .sheet{background:#fff; border-radius:16px; padding:16px; max-width:560px; width:100%; border:1px solid var(--border)}
+    .code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#f1f5f9; padding:10px; border-radius:8px; overflow:auto; white-space:pre-wrap}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand"><span>✨</span><strong>Hanbok Heritage Quiz</strong></div>
+      <div class="badge">📱 모바일 친화</div>
+    </header>
+
+    <div class="card" id="card"></div>
+
+    <footer>© <span id="year"></span> Hanbok Heritage Quiz · 개인정보 수집 없음</footer>
+  </div>
+
+  <!-- Fallback copy modal (no Clipboard API needed) -->
+  <div class="modal" id="copyModal" role="dialog" aria-modal="true" aria-labelledby="copyTitle">
+    <div class="sheet">
+      <h3 id="copyTitle" style="margin:0 0 8px 0">링크를 길게 눌러 복사하세요</h3>
+      <p class="muted">일부 환경(샌드박스/인앱 브라우저)에서는 클립보드 접근이 제한됩니다.</p>
+      <div class="code" id="copyText" contenteditable="true" spellcheck="false"></div>
+      <div class="row" style="margin-top:12px; justify-content:flex-end">
+        <button class="btn secondary" id="closeModal">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Data ----
+    const QUESTIONS = [
+      { id:1, title:"한복을 떠올리면 가장 먼저 드는 느낌은?", choices:[
+        { label:"고전적이고 단아함", value:"classic" },
+        { label:"일상에서도 편하게", value:"daily" },
+        { label:"의식과 격식, 위엄", value:"ceremony" },
+        { label:"요즘 감성, 힙하고 자유롭게", value:"fusion" },
+      ]},
+      { id:2, title:"주말 외출 스타일은?", choices:[
+        { label:"궁/고택 산책, 사진 남기기", value:"classic" },
+        { label:"카페 탐방 + 가벼운 산책", value:"daily" },
+        { label:"전시/공연/국악 등 격식 있는 일정", value:"ceremony" },
+        { label:"페스티벌/버스킹/스트릿", value:"fusion" },
+      ]},
+      { id:3, title:"선호하는 색감은?", choices:[
+        { label:"백옥/연분홍/담청 등 은은한 톤", value:"classic" },
+        { label:"크림/모노톤/파스텔로 데일리", value:"daily" },
+        { label:"홍/청/황 등 선명한 상징색", value:"ceremony" },
+        { label:"네온/배색/패턴 믹스", value:"fusion" },
+      ]},
+      { id:4, title:"여행지에서 한복을 입는다면?", choices:[
+        { label:"전통 대여점에서 정석으로", value:"classic" },
+        { label:"가벼운 생활한복으로 이동성↑", value:"daily" },
+        { label:"행사/기념일 맞춰 격식 있게", value:"ceremony" },
+        { label:"스니커즈/비니 등과 믹스매치", value:"fusion" },
+      ]},
+      { id:5, title:"나의 TPO(시간·장소·상황) 센스는?", choices:[
+        { label:"품격과 전통미 우선", value:"ceremony" },
+        { label:"활동성과 실용성 최우선", value:"daily" },
+        { label:"장소 무드에 맞춘 고전미", value:"classic" },
+        { label:"룰은 가볍게, 개성 우선", value:"fusion" },
+      ]},
+    ];
+
+    const RESULTS = {
+      classic:{ title:"단아한 고전파 — 정갈한 저고리 & 치마", emoji:"🕊️",
+        desc:"은은한 색과 절제된 실루엣을 사랑하는 당신! 궁과 고택에서 가장 빛나요. 겹겹의 결이 주는 단정함이 당신의 분위기를 완성합니다.",
+        tips:["은은한 색감의 배자/댕기 포인트","고택/서원 배경의 사진 스팟","기본 예절/발걸음(품) 자세 함께 소개"] },
+      daily:{ title:"편안한 일상파 — 생활한복 러버", emoji:"🌿",
+        desc:"가볍고 실용적인 소재, 모노톤/파스텔을 즐기는 타입! 카페/도심 산책에 찰떡이며 누구나 쉽게 도전할 수 있어요.",
+        tips:["스니커즈/캔버스백과 자연스러운 매치","계절별 원단(린넨/코튼) 소개","출퇴근/등굣길 한복 데이 제안"] },
+      ceremony:{ title:"격식의 아이콘 — 의식·예복 스타일", emoji:"👑",
+        desc:"의미 있는 날, 상징 색과 디테일을 중시하는 당신. 전통 문양과 색의 상징성을 스토리텔링하면 완성도가 높아져요.",
+        tips:["행사별 포멀 TPO 가이드","전통 문양/색 의미 카드","기념일 사진첩 템플릿 공유"] },
+      fusion:{ title:"자유로운 믹서 — 퓨전·스트릿 한복", emoji:"⚡",
+        desc:"룰에 갇히지 않는 창의형! 스트릿 아이템과 배색/패턴을 과감히 조합해 나만의 무드를 만듭니다.",
+        tips:["스냅백/비니/스니커즈 매칭 가이드","배색·레이어링 참고 룩북","해시태그 #HanbokHeritage #StreetHanbok"] },
+    };
+
+    // ---- Logic ----
+    function calcResult(answers){
+      const score = { classic:0, daily:0, ceremony:0, fusion:0 };
+      answers.forEach(a=> score[a] += 1);
+      const entries = Object.entries(score).sort((a,b)=> b[1]-a[1]);
+      const top = entries[0][1];
+      const cands = entries.filter(([,v])=> v===top).map(([k])=>k);
+      const order = ["daily","classic","fusion","ceremony"]; // tie-breaker
+      for(const k of order){ if(cands.includes(k)) return k; }
+      return entries[0][0];
+    }
+
+    function getResultFromURL(){
+      const hash = location.hash || "";
+      const m = /result=([a-z]+)/.exec(hash);
+      const key = m && m[1];
+      if(key && RESULTS[key]) return key;
+      return null;
+    }
+    function setResultInURL(key){
+      const base = location.origin + location.pathname;
+      history.replaceState({}, "", `${base}#result=${key}`);
+    }
+    function clearResultInURL(){
+      const base = location.origin + location.pathname;
+      history.replaceState({}, "", base);
+    }
+
+    function updateOgMeta(key){
+      const titleBase = "Hanbok Heritage Quiz — 한복 심리테스트";
+      const descBase = "1분 심리테스트로 나의 한복 스타일을 찾아보자! #HanbokHeritage";
+      const title = key ? `${RESULTS[key].emoji} ${RESULTS[key].title} | ${titleBase}` : titleBase;
+      const desc = key ? RESULTS[key].desc : descBase;
+      document.title = title;
+      setMeta("og:title", title); setMeta("og:description", desc); setMeta("description", desc);
+    }
+    function setMeta(prop, content){
+      let el = document.querySelector(`meta[property='${prop}']`) || document.querySelector(`meta[name='${prop}']`);
+      if(!el){ el = document.createElement('meta');
+        if(prop.startsWith('og:')) el.setAttribute('property', prop); else el.setAttribute('name', prop);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    }
+
+    // ---- UI ----
+    const $root = document.getElementById('card');
+    const state = { step:0, answers:[] };
+    const total = QUESTIONS.length;
+
+    function render(){
+      const progress = Math.round((Math.min(state.step, total)/total)*100);
+      const resultKey = (state.answers.length===total) ? calcResult(state.answers) : getResultFromURL();
+      $root.innerHTML = '';
+
+      if(state.step===0 && !resultKey){
+        $root.append(introView());
+      } else if(state.step>0 && state.step<=total){
+        $root.append(questionView(progress));
+      } else if(resultKey){
+        $root.append(resultView(resultKey));
+      }
+    }
+
+    function introView(){
+      const wrap = el('div');
+      wrap.append(el('div',{class:'title', text:'한복, 일상에서 즐겨보기'}));
+      wrap.append(el('p',{class:'intro', html:'짧은 문항으로 나의 한복 취향을 알아보고, 결과 카드와 함께 한 줄 소개를 SNS에 공유해 보세요. 세계인을 향한 작은 참여 캠페인 <b>#HanbokHeritage</b>에 동참할 수 있어요.'}));
+      const ul = el('ul',{class:'list'});
+      ul.append(el('li',{text:'소요 시간: 1분'}));
+      ul.append(el('li',{text:'결과: 4가지 타입 중 1개 (단아한 고전파 / 생활한복 / 의식 예복 / 퓨전 스트릿)'}));
+      ul.append(el('li',{text:'개인정보 수집 없음, 결과는 브라우저에만 표시됩니다.'}));
+      wrap.append(ul);
+      wrap.append(el('div',{class:'space'}));
+      const row = el('div',{class:'row'});
+      row.append(button('시작하기 ▶', ()=>{ state.step=1; render(); }));
+      row.append(button('링크 공유 🔗', ()=> share()));
+      wrap.append(row);
+      return wrap;
+    }
+
+    function questionView(progress){
+      const idx = state.step-1;
+      const q = QUESTIONS[idx];
+      const wrap = el('div');
+      wrap.append(el('div',{class:'title', text:`문항 ${state.step} / ${total}`}));
+      const prog = el('div',{class:'progress'}); const bar = el('div',{class:'bar'}); bar.style.width = progress+'%'; prog.append(bar); wrap.append(prog);
+      wrap.append(el('p',{class:'intro', text:q.title, style:'margin-top:12px'}));
+      const row = el('div',{class:'row', style:'margin-top:12px'});
+      q.choices.forEach(c=> row.append(choice(c.label, ()=> handleChoice(c.value))));
+      wrap.append(row);
+      return wrap;
+    }
+
+    function resultView(key){
+      updateOgMeta(key);
+      const wrap = el('div');
+      const card = el('div',{class:'result'});
+      card.append(el('h3',{text:`${RESULTS[key].emoji} ${RESULTS[key].title}`}));
+      card.append(el('p',{class:'intro', text:RESULTS[key].desc, style:'margin-top:8px'}));
+      card.append(el('div',{class:'space'}));
+      card.append(el('p',{class:'muted', text:'활용 팁'}));
+      const ul = el('ul',{class:'list'});
+      RESULTS[key].tips.forEach(t=> ul.append(el('li',{text:t})));
+      card.append(ul);
+      card.append(el('div',{class:'space'}));
+
+      const row = el('div',{class:'row'});
+      row.append(button('결과 공유 🔗', ()=> share()));
+      row.append(button('링크 복사 📋', ()=> copyLinkSafe(shareUrl())));
+      row.append(button('다시 하기 ↩', ()=>{ state.step=0; state.answers=[]; clearResultInURL(); updateOgMeta(null); render(); }, 'secondary'));
+      card.append(row);
+      wrap.append(card);
+
+      const tip = el('div',{class:'card', style:'margin-top:8px; padding:16px'});
+      tip.append(el('p',{class:'muted', text:'더 알아보기 리소스(링크 교체 가능):'}));
+      const l2 = el('ul',{class:'list'});
+      l2.append(el('li',{text:'한복의 구성과 명칭 가이드 (블로그/카드뉴스로 연결)'}));
+      l2.append(el('li',{text:'생활한복 브랜드/대여소 모음 (지역·예산별)'}));
+      l2.append(el('li',{text:'전통 예절/촬영 매너, 장소 이용 안내'}));
+      tip.append(l2);
+      wrap.append(tip);
+
+      wrap.append(el('p',{class:'muted', text:'#HanbokHeritage #KHeritage — 작은 참여가 문화를 널리 알립니다.', style:'text-align:center;margin-top:10px'}));
+      return wrap;
+    }
+
+    function handleChoice(value){
+      state.answers.push(value);
+      if(state.step < total){ state.step += 1; }
+      if(state.answers.length === total){
+        const r = calcResult(state.answers);
+        setResultInURL(r);
+        state.step = total + 1;
+      }
+      render();
+    }
+
+    function shareUrl(){
+      const base = location.origin + location.pathname;
+      const key = getResultFromURL();
+      return key ? \`\${base}#result=\${key}&utm_source=share\` : base;
+    }
+
+    // Robust share/copy without assuming Clipboard permission
+    function share(){
+      const title = '나는 어떤 한복 스타일일까? — Hanbok Heritage Quiz';
+      const key = getResultFromURL();
+      const text = key ? \`내 타입은 "\${RESULTS[key].title}" (\${RESULTS[key].emoji})
+#HanbokHeritage #KHeritage #한복\` : '한복 심리테스트로 내 취향을 찾아보세요!';
+      const url = shareUrl();
+      // 1) Web Share API
+      if (navigator.share){ navigator.share({title, text, url}).catch(()=>{}); return; }
+      // 2) Clipboard API (may be blocked) — try/catch
+      try{ if(navigator.clipboard){ navigator.clipboard.writeText(\`\${title}\n\${text}\n\${url}\`); console.log('[share] link copied:', url); return; } }catch(_){ /* ignore */ }
+      // 3) execCommand fallback
+      if(execCopy(\`\${title}\n\${text}\n\${url}\`)){ console.log('[share] copied via execCommand'); return; }
+      // 4) Modal with selectable text
+      openCopyModal(\`\${title}\n\${text}\n\${url}\`);
+    }
+
+    function copyLinkSafe(url){
+      // Clipboard may be blocked — use same cascade
+      if (navigator.share){ navigator.share({title:document.title, text:'Hanbok Heritage Quiz', url}).catch(()=>{}); return; }
+      try{ if(navigator.clipboard){ navigator.clipboard.writeText(url); console.log('[copy] link copied:', url); return; } }catch(_){ }
+      if(execCopy(url)){ console.log('[copy] via execCommand'); return; }
+      openCopyModal(url);
+    }
+
+    function execCopy(text){
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy');
+        document.body.removeChild(ta); return ok;
+      } catch(e){ return false; }
+    }
+
+    function openCopyModal(text){
+      const modal = document.getElementById('copyModal');
+      const box = document.getElementById('copyText');
+      box.textContent = text;
+      modal.classList.add('open');
+      box.focus();
+      const sel = window.getSelection(); const range = document.createRange();
+      range.selectNodeContents(box); sel.removeAllRanges(); sel.addRange(range);
+    }
+    document.getElementById('closeModal').addEventListener('click', ()=>{
+      document.getElementById('copyModal').classList.remove('open');
+    });
+
+    function el(tag, opts={}){
+      const n = document.createElement(tag);
+      if(opts.class) n.className = opts.class;
+      if(opts.text) n.textContent = opts.text;
+      if(opts.html) n.innerHTML = opts.html;
+      if(opts.style) n.setAttribute('style', opts.style);
+      return n;
+    }
+    function button(label, onClick, variant){
+      const b = el('button', {class: 'btn' + (variant==='secondary' ? ' secondary':''), text: label});
+      b.addEventListener('click', onClick);
+      return b;
+    }
+    function choice(label, onClick){
+      const b = el('button', {class:'choice', text:label});
+      b.addEventListener('click', onClick); return b;
+    }
+
+    // Initialize
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const fromUrl = getResultFromURL();
+    if(fromUrl){ updateOgMeta(fromUrl); }
+    render();
+
+    // ---- Runtime tests (console) ----
+    function runUnitTests(){
+      const log = (name, pass)=> console[pass?'log':'error'](\`✅[test] \${name}: \${pass?'pass':'FAIL'}\`);
+      // 1) majority
+      log('majority classic', calcResult(['classic','classic','daily','fusion','classic'])==='classic');
+      log('majority daily',   calcResult(['daily','daily','classic','fusion','ceremony'])==='daily');
+      // 2) tie-breakers (daily > classic > fusion > ceremony)
+      log('tie daily vs classic → daily', calcResult(['classic','daily','classic','daily','fusion'])==='daily');
+      log('tie fusion vs ceremony → fusion', calcResult(['fusion','ceremony','fusion','ceremony','classic'])==='fusion');
+      // 3) all-different → daily by rule (using 4 answers)
+      log('all 1 each → daily', calcResult(['classic','daily','ceremony','fusion'])==='daily');
+      // 4) URL helpers
+      setResultInURL('daily');
+      log('URL write/read daily', getResultFromURL()==='daily');
+      clearResultInURL();
+      log('URL cleared', getResultFromURL()===null);
+    }
+    try{ runUnitTests(); }catch(e){ /* ignore */ }
+  </script>
+</body>
+</html>
