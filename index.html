@@ -134,12 +134,10 @@
       return null;
     }
     function setResultInURL(key){
-      const base = location.origin + location.pathname;
-      history.replaceState({}, "", `${base}#result=${key}`);
+      history.replaceState({}, "", `#result=${key}`);
     }
     function clearResultInURL(){
-      const base = location.origin + location.pathname;
-      history.replaceState({}, "", base);
+      history.replaceState({}, "", location.pathname);
     }
 
     function updateOgMeta(key){
@@ -253,7 +251,7 @@
     }
 // 수정된 코드
     function shareUrl(){
-      const base = location.origin + '/eung/index.html'; // 경로를 직접 지정
+      const base = location.href.split('#')[0];
       const key = getResultFromURL();
       return key ? `${base}#result=${key}&utm_source=share` : base;
     }
