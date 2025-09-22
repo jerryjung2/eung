@@ -227,16 +227,6 @@
       row.append(button('다시 하기 ↩', ()=>{ state.step=0; state.answers=[]; clearResultInURL(); updateOgMeta(null); render(); }, 'secondary'));
       card.append(row);
       wrap.append(card);
-
-      const tip = el('div',{class:'card', style:'margin-top:8px; padding:16px'});
-      tip.append(el('p',{class:'muted', text:'더 알아보기 리소스(링크 교체 가능):'}));
-      const l2 = el('ul',{class:'list'});
-      l2.append(el('li',{text:'한복의 구성과 명칭 가이드 (블로그/카드뉴스로 연결)'}));
-      l2.append(el('li',{text:'생활한복 브랜드/대여소 모음 (지역·예산별)'}));
-      l2.append(el('li',{text:'전통 예절/촬영 매너, 장소 이용 안내'}));
-      tip.append(l2);
-      wrap.append(tip);
-
       wrap.append(el('p',{class:'muted', text:'#HanbokHeritage #KHeritage — 작은 참여가 문화를 널리 알립니다.', style:'text-align:center;margin-top:10px'}));
       return wrap;
     }
